@@ -189,7 +189,24 @@ class CRUDController extends Controller
         }
 
         return new RedirectResponse($this->admin->generateUrl('list', array('filter' => $this->admin->getFilterParameters())));
-    }
+	}
+
+	/**
+	 ** Returns the correct RESTful verb, given either by the request itself or
+	 ** via the "_method" parameter.
+	 ** 
+	 ** @return string HTTP method, either 
+	 **/
+	protected function getHttpMethod() {
+		$request = $this->getRequest();
+		if($request->getHttpMethodParameterOverride()) {
+			return $request->getMethod(); 
+		} elseif($request->request->has('_method')) {
+			return $request->request->get('_method');
+		} else {
+			return $request->getMethod();
+		}
+	}
 
     /**
      * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException|\Symfony\Component\Security\Core\Exception\AccessDeniedException
@@ -211,7 +228,7 @@ class CRUDController extends Controller
             throw new AccessDeniedException();
         }
 
-        if ($this->getRequest()->getMethod() == 'DELETE') {
+        if ($this->getHttpMethod() == 'DELETE') {
             try {
                 $this->admin->delete($object);
                 $this->get('session')->setFlash('sonata_flash_success', 'flash_delete_success');
